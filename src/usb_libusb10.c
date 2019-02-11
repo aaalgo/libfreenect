@@ -354,7 +354,7 @@ FN_INTERNAL int fnusb_keep_alive_led(freenect_context* ctx, libusb_device* audio
 
 	// we need to do this as it is possible that the device was not closed properly in a previous session
 	// if we don't do this and the device wasn't closed properly - it can cause infinite hangs on LED and TILT functions
-	libusb_reset_device(audioHandle);
+	//libusb_reset_device(audioHandle);
 	libusb_close(audioHandle);
 
 	res = libusb_open(audio, &audioHandle);

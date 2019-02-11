@@ -36,6 +36,8 @@
 
 char *out_dir=0;
 volatile sig_atomic_t running = 1;
+double begin_time = -1;
+double duration = -1;
 uint32_t last_timestamp = 0;
 FILE *index_fp = NULL;
 
@@ -124,6 +126,17 @@ void dump(char type, uint32_t timestamp, void *data, int data_size)
 			fclose(fp);
 			break;
 	}
+    if (duration > 0) {
+        if (begin_time < 0) {
+            begin_time = cur_time;
+        }
+        else {
+            if (cur_time - begin_time > duration) {
+                printf("DONE %g %g %g\n", cur_time, begin_time, duration);
+                running = 0;
+            }
+        }
+    }
 }
 
 void dump_ffmpeg_24(FILE *stream, uint32_t timestamp, void *data,
@@ -335,7 +348,7 @@ void signal_cleanup(int num)
 void usage()
 {
 	printf("Records the Kinect sensor data to a directory\nResult can be used as input to Fakenect\nUsage:\n");
-	printf("  record [-h] [-ffmpeg] [-ffmpeg-opts <options>] "
+	printf("  record [-h] [-ffmpeg] [-ffmpeg-opts <options>] [-d duration]"
 		   "<target basename>\n");
 	exit(0);
 }
@@ -349,7 +362,11 @@ int main(int argc, char **argv)
 		else if (strcmp(argv[c],"-ffmpeg-opts")==0) {
 			if (++c < argc)
 				ffmpeg_opts = argv[c];
-		} else if (strcmp(argv[c],"-h")==0)
+		} if (strcmp(argv[c], "-d") == 0) {
+            if (++c < argc) {
+                duration = atof(argv[c]);
+            }
+        } else if (strcmp(argv[c],"-h")==0)
 			usage();
 		else
 			out_dir = argv[c];
